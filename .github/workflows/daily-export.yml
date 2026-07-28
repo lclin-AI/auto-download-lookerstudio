@@ -1,0 +1,50 @@
+name: Daily Cancellation Details export
+
+# Runs once a day and can also be triggered manually from the Actions tab.
+on:
+  schedule:
+    # 22:30 UTC = 06:30 HKT (next day). Adjust the cron to your preferred time.
+    - cron: "30 22 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-export
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write service account key
+        run: |
+          printf '%s' "${{ secrets.GCP_SA_KEY }}" > sa_key.json
+        # sa_key.json is git-ignored and lives only on the runner for this job.
+
+      - name: Run export and upload
+        env:
+          GCP_SA_KEY_PATH: sa_key.json
+          BQ_PROJECT: ${{ secrets.BQ_PROJECT }}
+          BQ_TABLE: ${{ secrets.BQ_TABLE }}
+          BQ_QUERY: ${{ secrets.BQ_QUERY }}
+          DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+          FILENAME_PREFIX: ${{ vars.FILENAME_PREFIX }}
+        run: python export_and_upload.py
+
+      - name: Clean up key
+        if: always()
+        run: rm -f sa_key.json

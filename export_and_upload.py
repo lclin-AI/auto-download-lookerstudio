@@ -48,7 +48,7 @@ DRIVE_FOLDER_ID = os.environ.get("DRIVE_FOLDER_ID", "")
 # Filename prefix expected by the report tool. It globs
 # "Report_Cancellation Monitoring_*.csv" and picks the most recent.
 FILENAME_PREFIX = os.environ.get(
-    "FILENAME_PREFIX", "Report_Cancellation Monitoring_"
+    "FILENAME_PREFIX", "Express - Wet Market Sales Report_Cancellation Monitoring_表格_"
 )
 
 # The 24 columns the report tool reads, in order. If BQ_QUERY is not supplied
@@ -127,7 +127,7 @@ def fetch_rows(creds):
 
 def write_csv(header, rows) -> "tuple":
     """Write rows to an in-memory UTF-8-SIG CSV. Returns (filename, bytes)."""
-    stamp = _dt.datetime.now().strftime("%Y%m%d")
+    stamp = _dt.datetime.now().strftime("%m%d")
     filename = FILENAME_PREFIX + stamp + ".csv"
     buf = io.StringIO()
     writer = csv.writer(buf)

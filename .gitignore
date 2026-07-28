@@ -1,0 +1,7 @@
+# Never commit credentials or generated data
+sa_key.json
+*.json.key
+*.csv
+.env
+__pycache__/
+*.pyc

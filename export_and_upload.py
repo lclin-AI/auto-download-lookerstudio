@@ -6,15 +6,15 @@ Daily automation:
   1. Query the BigQuery table/view that backs the Looker Studio
      "Cancellation Details" table on the Express - Wet Market Sales Report.
   2. Write the result to a CSV using the filename pattern the downstream
-     "貨品取消率分析" tool expects:  Report_Cancellation Monitoring_<YYYYMMDD>.csv
-  3. Upload that CSV to the target Google Drive folder.
+     report tool expects: <FILENAME_PREFIX><MMDD> with no file extension.
+  3. Upload it to the target Drive folder as a Google Sheet.
 
 Auth: a single Google Cloud SERVICE ACCOUNT is used for both BigQuery and
 Drive. Nothing sensitive is stored in this repo. All configuration comes from
 environment variables (populated from GitHub Actions Secrets). See README.md.
 
 This script is READ-ONLY against the data source. It only creates/uploads a
-CSV; it never modifies the source data.
+Sheet; it never modifies the source data.
 """
 
 import csv
@@ -128,7 +128,7 @@ def fetch_rows(creds):
 def write_csv(header, rows) -> "tuple":
     """Write rows to an in-memory UTF-8-SIG CSV. Returns (filename, bytes)."""
     stamp = _dt.datetime.now().strftime("%m%d")
-    filename = FILENAME_PREFIX + stamp + ".csv"
+    filename = FILENAME_PREFIX + stamp
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow(header)
@@ -149,7 +149,7 @@ def upload_to_drive(creds, filename: str, data: bytes) -> str:
     media = MediaIoBaseUpload(
         io.BytesIO(data), mimetype="text/csv", resumable=True
     )
-    metadata = {"name": filename, "parents": [DRIVE_FOLDER_ID]}
+    metadata = {"name": filename, "parents": [DRIVE_FOLDER_ID], "mimeType": "application/vnd.google-apps.spreadsheet"}
     created = (
         service.files()
         .create(body=metadata, media_body=media, fields="id,name", supportsAllDrives=True)

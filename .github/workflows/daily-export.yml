@@ -3,8 +3,8 @@ name: Daily Cancellation Details export
 # Runs once a day and can also be triggered manually from the Actions tab.
 on:
   schedule:
-    # 22:30 UTC = 06:30 HKT (next day). Adjust the cron to your preferred time.
-    - cron: "30 22 * * *"
+    # 01:00 UTC = 09:00 HKT. Adjust the cron to your preferred time.
+    - cron: "0 1 * * *"
   workflow_dispatch: {}
 
 permissions:
